@@ -42,13 +42,14 @@ Formats de sortie disponibles : `AVIF`, `BMP`, `EPS`, `GIF`, `ICO`, `JPG`,
 `ODD`, `PDF`, `PNG`, `PS`, `PSD`, `TIFF` et `WEBP`. La liste plus large des formats
 RAW, photo et documentaires est réservée aux fichiers d'entrée.
 
-### Options PDF et AVIF avancées
+### Options avancées par format
 
 Pour afficher les options d'un format sans surcharger l'aide générale :
 
 ```powershell
 .\ec2.exe -h -f pdf
 .\ec2.exe --help avif
+.\ec2.exe --help bmp
 ```
 
 ```powershell

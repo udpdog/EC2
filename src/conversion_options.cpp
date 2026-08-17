@@ -8,7 +8,7 @@
 namespace ec2 {
 namespace {
 
-const std::set<std::wstring> kFormatsWithAdvancedOptions = {L"avif", L"pdf"};
+const std::set<std::wstring> kFormatsWithAdvancedOptions = {L"avif", L"bmp", L"pdf"};
 
 bool readValue(int argc, wchar_t* argv[], int& index,
                const std::wstring& argument, std::wstring& value,
