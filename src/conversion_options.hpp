@@ -8,17 +8,17 @@ namespace ec2 {
 enum class FitMode { Max, Crop, Scale };
 
 struct ResizeOptions {
-    unsigned width = 0;
-    unsigned height = 0;
-    FitMode fit = FitMode::Max;
+	unsigned width = 0;
+	unsigned height = 0;
+	FitMode fit = FitMode::Max;
 };
 
 struct ConversionOptions {
-    ResizeOptions resize;
-    bool stripMetadata = false;
-    bool autoOrient = true;
-    bool customized = false;
-    bool enabled = false;
+	ResizeOptions resize;
+	bool stripMetadata = false;
+	bool autoOrient = true;
+	bool customized = false;
+	bool enabled = false;
 };
 
 enum class OptionParseResult { NotRecognized, Parsed, Error };
