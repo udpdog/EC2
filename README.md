@@ -11,11 +11,14 @@ le script de compilation ou par `ec2.exe` lors de sa première utilisation.
 
 ## Compilation
 
-Dans un terminal PowerShell ouvert dans ce dossier :
+Dans un terminal PowerShell ou une invite de commandes ouverte dans ce dossier :
 
 ```powershell
-.\build.ps1
+.\build.cmd
 ```
+
+`build.cmd` lance le script avec une exception de politique limitée à ce seul
+processus. Il ne modifie pas la stratégie d'exécution PowerShell du système.
 
 ## Utilisation
 
