@@ -54,4 +54,8 @@ CMakeUserPresets.json
 # External projects
 *-prefix/
 
+# Local project files
+/build/
+/auto-git.ps1
+
 # End of https://www.toptal.com/developers/gitignore/api/c++,cmake
