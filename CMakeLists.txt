@@ -4,6 +4,7 @@ project(ec2 LANGUAGES CXX)
 add_executable(ec2
     src/main.cpp
     src/cli.cpp
+    src/conversion_options.cpp
     src/formats.cpp
     src/imagemagick.cpp
 )

@@ -42,6 +42,27 @@ Formats de sortie disponibles : `AVIF`, `BMP`, `EPS`, `GIF`, `ICO`, `JPG`,
 `ODD`, `PDF`, `PNG`, `PS`, `PSD`, `TIFF` et `WEBP`. La liste plus large des formats
 RAW, photo et documentaires est réservée aux fichiers d'entrée.
 
+### Options PDF et AVIF avancées
+
+Pour afficher les options d'un format sans surcharger l'aide générale :
+
+```powershell
+.\ec2.exe -h -f pdf
+.\ec2.exe --help avif
+```
+
+```powershell
+.\ec2.exe image.jpg -format pdf --width 1920 --height 1080 --fit max --strip yes --auto-orient yes
+.\ec2.exe image.png -format avif --width 1280 --height 720 --fit crop --strip no --auto-orient yes
+```
+
+- `--width` et `--height` définissent les dimensions en pixels.
+- `--fit max` conserve les proportions et n'agrandit pas une petite image.
+- `--fit crop` remplit les dimensions puis recadre au centre.
+- `--fit scale` force exactement les dimensions demandées.
+- `--strip yes` supprime les métadonnées.
+- `--auto-orient yes` applique l'orientation EXIF avant le redimensionnement.
+
 La lecture et l'écriture réelles d'un format dépendent des codecs et délégués
 présents dans l'installation d'ImageMagick. Beaucoup de formats RAW sont faits
 pour être lus, pas générés. Certains formats documentaires nécessitent aussi

@@ -7,6 +7,11 @@ namespace fs=std::filesystem;
 int wmain(int argc,wchar_t* argv[]){
  auto o=ec2::parseArguments(argc,argv);
  if(o.action==ec2::Action::Help){ec2::printHelp();return 0;}
+ if(o.action==ec2::Action::FormatHelp){
+  if(!ec2::printConversionOptionsHelp(o.helpFormat,std::wcout))
+   std::wcout<<L"Le format "<<o.helpFormat<<L" ne possede pas d'options avancees.\n";
+  return 0;
+ }
  if(o.action==ec2::Action::Formats){ec2::printFormats(std::wcout);return 0;}
  if(o.action==ec2::Action::Error){std::wcerr<<L"Erreur : "<<o.error<<L'\n';return 2;}
  std::error_code e;o.input=fs::absolute(o.input,e);
@@ -28,7 +33,8 @@ int wmain(int argc,wchar_t* argv[]){
            <<L"[EC2] Sortie  : "<<o.output<<L" ("<<o.format<<L")\n"
            <<L"[EC2] Moteur  : "<<magick<<L"\n"
            <<L"[EC2] Conversion en cours...\n";
- auto code=ec2::convertImage(magick,o.input,o.output,o.format);
+ ec2::printConversionOptions(o.conversion,std::wcout);
+ auto code=ec2::convertImage(magick,o.input,o.output,o.format,o.conversion);
  if(code||!fs::is_regular_file(o.output,e)){std::wcerr<<L"Erreur : conversion impossible (code "<<code<<L").\n";return 6;}
  std::wcout<<L"[EC2] Conversion terminee avec succes.\n";return 0;
 }

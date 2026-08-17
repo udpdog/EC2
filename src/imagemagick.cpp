@@ -31,5 +31,16 @@ bool findImageMagick(std::wstring& exe){
  }return false;
 }
 bool installImageMagick(){std::wstring w;if(!search(L"winget.exe",w))return false;return run(w,L"install --id ImageMagick.ImageMagick --exact --accept-package-agreements --accept-source-agreements")==0;}
-unsigned long convertImage(const std::wstring& exe,const fs::path& in,const fs::path& out,const std::wstring& fmt){return run(exe,quote(in.wstring())+L" "+quote(normalizeFormat(fmt)+L":"+out.wstring()));}
+unsigned long convertImage(const std::wstring& exe,const fs::path& in,const fs::path& out,const std::wstring& fmt,const ConversionOptions& options){
+ std::wstring args=quote(in.wstring());
+ if(options.enabled&&options.autoOrient)args+=L" -auto-orient";
+ if(options.enabled&&(options.resize.width||options.resize.height)){
+  std::wstring geometry=(options.resize.width?std::to_wstring(options.resize.width):L"")+L"x"+(options.resize.height?std::to_wstring(options.resize.height):L"");
+  if(options.resize.fit==FitMode::Max)args+=L" -resize "+quote(geometry+L">");
+  else if(options.resize.fit==FitMode::Crop)args+=L" -resize "+quote(geometry+L"^")+L" -gravity center -extent "+quote(geometry);
+  else args+=L" -resize "+quote(geometry+L"!");
+ }
+ if(options.enabled&&options.stripMetadata)args+=L" -strip";
+ return run(exe,args+L" "+quote(normalizeFormat(fmt)+L":"+out.wstring()));
+}
 }
