@@ -21,7 +21,7 @@ Options parseArguments(int argc,wchar_t* argv[]){
   else if(o.input.empty()) o.input=a; else{o.error=L"un seul fichier d'entree est accepte.";return o;}
  }
  if(o.input.empty()||o.format.empty()) o.error=L"indiquez une image et -format <format>.";
- else if(!isSupportedFormat(o.format)) o.error=L"format inconnu '"+o.format+L"'. Utilisez --formats.";
+ else if(!isSupportedOutputFormat(o.format)) o.error=L"format de sortie non accepte '"+o.format+L"'. Utilisez --formats.";
  else o.action=Action::Convert;
  return o;
 }

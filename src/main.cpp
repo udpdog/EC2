@@ -11,6 +11,10 @@ int wmain(int argc,wchar_t* argv[]){
  if(o.action==ec2::Action::Error){std::wcerr<<L"Erreur : "<<o.error<<L'\n';return 2;}
  std::error_code e;o.input=fs::absolute(o.input,e);
  if(e||!fs::is_regular_file(o.input,e)){std::wcerr<<L"Erreur : fichier introuvable : "<<o.input<<L'\n';return 3;}
+ const std::wstring inputFormat=ec2::normalizeFormat(o.input.extension().wstring());
+ if(!ec2::isSupportedInputFormat(inputFormat)){
+  std::wcerr<<L"Erreur : format d'entree non accepte '"<<inputFormat<<L"'.\n";return 3;
+ }
  if(o.output.empty()){
   o.output=o.input.parent_path()/(o.input.stem().wstring()+L"."+o.format);
   if(ec2::normalizeFormat(o.input.extension().wstring())==o.format)o.output=o.input.parent_path()/(o.input.stem().wstring()+L"_converted."+o.format);
@@ -20,8 +24,11 @@ int wmain(int argc,wchar_t* argv[]){
  std::wstring magick;
  if(!ec2::findImageMagick(magick)){std::wcout<<L"Installation automatique d'ImageMagick...\n";
   if(!ec2::installImageMagick()||!ec2::findImageMagick(magick)){std::wcerr<<L"Erreur : installation impossible. Verifiez winget.\n";return 5;}}
- std::wcout<<L"Conversion : "<<o.input<<L"\nVers       : "<<o.output<<L'\n';
+ std::wcout<<L"[EC2] Entree  : "<<o.input<<L" ("<<inputFormat<<L")\n"
+           <<L"[EC2] Sortie  : "<<o.output<<L" ("<<o.format<<L")\n"
+           <<L"[EC2] Moteur  : "<<magick<<L"\n"
+           <<L"[EC2] Conversion en cours...\n";
  auto code=ec2::convertImage(magick,o.input,o.output,o.format);
  if(code||!fs::is_regular_file(o.output,e)){std::wcerr<<L"Erreur : conversion impossible (code "<<code<<L").\n";return 6;}
- std::wcout<<L"Conversion terminee.\n";return 0;
+ std::wcout<<L"[EC2] Conversion terminee avec succes.\n";return 0;
 }
