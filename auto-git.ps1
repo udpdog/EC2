@@ -1,4 +1,4 @@
-$delay = 30
+$delay = 10
 $lastChange = Get-Date
 $lastState = ""
 
