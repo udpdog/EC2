@@ -1,0 +1,10 @@
+^C:\USERS\SENSE\DOCUMENTS\EC2\BUILD\CMAKEFILES\D5A67634FE5637FDF77682800B14F416\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/sense/Documents/EC2 -BC:/Users/sense/Documents/EC2/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/sense/Documents/EC2/build/ec2.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
