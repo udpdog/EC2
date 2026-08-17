@@ -5,9 +5,10 @@ Il utilise ImageMagick pour prendre en charge un grand nombre de codecs.
 
 ## Prérequis
 
-Installer Visual Studio Build Tools (charge de travail **Développement Desktop
-en C++**) et CMake. ImageMagick est installé automatiquement avec `winget` par
-le script de compilation ou par `ec2.exe` lors de sa première utilisation.
+Les dépendances manquantes sont installées automatiquement avec `winget` :
+ImageMagick, CMake et Visual Studio Build Tools avec les outils C++. La première
+compilation peut donc prendre plusieurs minutes et demander une autorisation
+Windows.
 
 ## Compilation
 
