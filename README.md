@@ -39,7 +39,7 @@ d'écraser un fichier existant, sauf avec `--force`.
 ```
 
 Formats de sortie disponibles : `AVIF`, `BMP`, `EPS`, `GIF`, `ICO`, `JPG`,
-`ODD`, `PNG`, `PS`, `PSD`, `TIFF` et `WEBP`. La liste plus large des formats
+`ODD`, `PDF`, `PNG`, `PS`, `PSD`, `TIFF` et `WEBP`. La liste plus large des formats
 RAW, photo et documentaires est réservée aux fichiers d'entrée.
 
 La lecture et l'écriture réelles d'un format dépendent des codecs et délégués

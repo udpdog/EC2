@@ -12,7 +12,7 @@ const std::set<std::wstring> inputFormats = {
  L"pub",L"raf",L"raw",L"rw2",L"tga",L"tif",L"tiff",L"webp",L"x3f",L"xcf",L"xps"};
 
 const std::set<std::wstring> outputFormats = {
- L"avif",L"bmp",L"eps",L"gif",L"ico",L"jpg",L"odd",L"png",L"ps",L"psd",L"tiff",L"webp"};
+ L"avif",L"bmp",L"eps",L"gif",L"ico",L"jpg",L"odd",L"pdf",L"png",L"ps",L"psd",L"tiff",L"webp"};
 }
 std::wstring normalizeFormat(std::wstring value) {
  std::transform(value.begin(),value.end(),value.begin(),[](wchar_t c){return std::towlower(c);});
