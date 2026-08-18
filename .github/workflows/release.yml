@@ -36,4 +36,4 @@ jobs:
           gh release create "${{ github.ref_name }}" `
             ".\ec2.exe#EC2 Windows x64" `
             --title "EC2 ${{ github.ref_name }}" `
-            --generate-notes
+            --generate-notesd
