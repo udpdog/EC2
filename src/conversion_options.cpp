@@ -12,6 +12,7 @@ struct FormatOptionsProfile {
     unsigned defaultWidth = 0;
     unsigned defaultHeight = 0;
     bool supportsQuality = false;
+    unsigned defaultQuality = 0;
 };
 
 const std::map<std::wstring, FormatOptionsProfile> kFormatProfiles = {
@@ -21,7 +22,8 @@ const std::map<std::wstring, FormatOptionsProfile> kFormatProfiles = {
     {L"gif", {}},
     {L"ico", {32, 32}},
     {L"jpg", {0, 0, true}},
-    {L"pdf", {}}
+    {L"pdf", {}},
+    {L"png", {0, 0, true, 75}}
 };
 
 bool readValue(int argc, wchar_t* argv[], int& index,
@@ -133,6 +135,7 @@ bool validateConversionOptions(const std::wstring& outputFormat,
     if (options.enabled) {
         if (!options.resize.width) options.resize.width = profile->second.defaultWidth;
         if (!options.resize.height) options.resize.height = profile->second.defaultHeight;
+        if (!options.quality) options.quality = profile->second.defaultQuality;
     }
 	if ((options.resize.fit == FitMode::Crop || options.resize.fit == FitMode::Scale)
 	        && (!options.resize.width || !options.resize.height)) {
@@ -182,7 +185,10 @@ bool printConversionOptionsHelp(const std::wstring& format, std::wostream& outpu
            << L"  --strip BOOL        yes ou no (defaut : no)\n"
            << L"  --auto-orient BOOL  yes ou no (defaut : yes)\n";
     if (profile->second.supportsQuality) {
-        output << L"  --quality N         Qualite de 1 a 100 (defaut : automatique)\n";
+        output << L"  --quality N         Qualite de 1 a 100 (defaut : ";
+        if (profile->second.defaultQuality) output << profile->second.defaultQuality;
+        else output << L"automatique";
+        output << L")\n";
     }
     output << L"\n"
 	       << L"Exemple :\n"
