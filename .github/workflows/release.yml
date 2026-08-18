@@ -9,17 +9,16 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  windows:
+    name: Windows x64
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Build EC2
         shell: powershell
-        run: |
-          .\build.ps1
+        run: .\build.ps1
 
       - name: Verify executable
         shell: powershell
@@ -28,12 +27,72 @@ jobs:
             throw "ec2.exe was not generated"
           }
 
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: ec2.exe
+          if-no-files-found: error
+
+  linux:
+    name: Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install runtime test dependency
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Build EC2
+        run: bash ./build.sh
+
+      - name: Test Linux conversion
+        run: |
+          ./ec2 --help
+          convert -size 32x24 xc:orange input.png
+          ./ec2 input.png -format webp --quality 80
+          test -s input.webp
+
+      - name: Package Linux binary
+        run: |
+          mv ec2 ec2-linux-x64
+          tar -czf ec2-linux-x64.tar.gz ec2-linux-x64
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: |
+            ec2-linux-x64
+            ec2-linux-x64.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-x64
+          path: release/windows
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-x64
+          path: release/linux
+
       - name: Create GitHub Release
-        shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" `
-            ".\ec2.exe#EC2 Windows x64" `
-            --title "EC2 ${{ github.ref_name }}" `
+          gh release create "${{ github.ref_name }}" \
+            "release/windows/ec2.exe#EC2 Windows x64" \
+            "release/linux/ec2-linux-x64#EC2 Linux x64" \
+            "release/linux/ec2-linux-x64.tar.gz#EC2 Linux x64 (tar.gz)" \
+            --repo "${{ github.repository }}" \
+            --title "EC2 ${{ github.ref_name }}" \
             --generate-notes

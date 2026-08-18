@@ -1,0 +1,67 @@
+name: Build & Release EC2
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: docker
+
+    container:
+      image: debian:bookworm
+
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            git \
+            cmake \
+            make \
+            mingw-w64 \
+            imagemagick \
+            curl \
+            ca-certificates
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Windows build
+        run: |
+          cmake -S . -B build-windows \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Windows executable
+        run: |
+          cmake --build build-windows --parallel
+
+      - name: Find executable
+        run: |
+          find build-windows -type f -iname "*.exe" -print
+
+          EC2_EXE="$(find build-windows -type f -iname 'ec2.exe' | head -n 1)"
+
+          if [ -z "$EC2_EXE" ]; then
+            echo "ec2.exe was not generated"
+            exit 1
+          fi
+
+          cp "$EC2_EXE" ./ec2.exe
+
+      - name: Verify executable
+        run: |
+          test -s ./ec2.exe
+          ls -lh ./ec2.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: ec2.exe
+          if-no-files-found: error

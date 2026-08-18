@@ -1,0 +1,33 @@
+name: Linux CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Build EC2
+        run: bash ./build.sh
+
+      - name: Test command line
+        run: |
+          ./ec2 --help
+          ./ec2 --formats
+          ./ec2 --help webp
+
+      - name: Test a real conversion
+        run: |
+          convert -size 64x48 gradient: input.png
+          ./ec2 input.png -format webp --width 32 --height 32 --fit max --quality 80
+          test -s input.webp
+          identify input.webp
