@@ -1,8 +1,6 @@
 <div align="center">
 
-# EC2
-
-**Convertisseur d’images en ligne de commande pour Windows**
+[![EC2](https://raw.githubusercontent.com/udpdog/ec2/master/.github/logo.png)]
 
 [![Latest release](https://img.shields.io/github/v/release/udpdog/EC2?style=for-the-badge&label=Version)](https://github.com/udpdog/EC2/releases/latest)
 [![Build and release](https://img.shields.io/github/actions/workflow/status/udpdog/EC2/release.yml?style=for-the-badge&label=Build)](https://github.com/udpdog/EC2/actions/workflows/release.yml)
