@@ -39,7 +39,7 @@ d'écraser un fichier existant, sauf avec `--force`.
 ```
 
 Formats de sortie disponibles : `AVIF`, `BMP`, `EPS`, `GIF`, `ICO`, `JPG`,
-`ODD`, `PDF`, `PNG`, `PS`, `PSD`, `TIFF` et `WEBP`. La liste plus large des formats
+`PDF`, `PNG`, `PS`, `PSD`, `TIFF` et `WEBP`. La liste plus large des formats
 RAW, photo et documentaires est réservée aux fichiers d'entrée.
 
 ### Options avancées par format
@@ -72,4 +72,4 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 La lecture et l'écriture réelles d'un format dépendent des codecs et délégués
 présents dans l'installation d'ImageMagick. Beaucoup de formats RAW sont faits
 pour être lus, pas générés. Certains formats documentaires nécessitent aussi
-Ghostscript ou LibreOffice.
+Ghostscript.

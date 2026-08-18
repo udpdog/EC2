@@ -66,7 +66,7 @@ int wmain(int argc,wchar_t* argv[]) {
 	          <<L"[EC2] Moteur  : "<<magick<<L"\n"
 	          <<L"[EC2] Conversion en cours...\n";
 	ec2::printConversionOptions(o.conversion,std::wcout);
-	auto code=ec2::convertImage(magick,o.input,o.output,o.format,o.conversion);
+ auto code=ec2::convertImage(magick,o.input,o.output,o.format,o.conversion);
 	if(code||!fs::is_regular_file(o.output,e)) {
 		std::wcerr<<L"Erreur : conversion impossible (code "<<code<<L").\n";
 		return 6;
