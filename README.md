@@ -56,6 +56,7 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 .\ec2.exe --help jpg
 .\ec2.exe --help png
 .\ec2.exe --help ps
+.\ec2.exe --help psd
 ```
 
 ```powershell
