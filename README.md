@@ -52,6 +52,8 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 .\ec2.exe --help bmp
 .\ec2.exe --help eps
 .\ec2.exe --help gif
+.\ec2.exe --help ico
+.\ec2.exe --help jpg
 ```
 
 ```powershell
@@ -65,6 +67,7 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 - `--fit scale` force exactement les dimensions demandées.
 - `--strip yes` supprime les métadonnées.
 - `--auto-orient yes` applique l'orientation EXIF avant le redimensionnement.
+- `--quality 1..100` règle la qualité JPEG (`JPG` uniquement).
 
 La lecture et l'écriture réelles d'un format dépendent des codecs et délégués
 présents dans l'installation d'ImageMagick. Beaucoup de formats RAW sont faits

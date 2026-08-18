@@ -15,9 +15,10 @@ struct ResizeOptions {
 
 struct ConversionOptions {
 	ResizeOptions resize;
-	bool stripMetadata = false;
-	bool autoOrient = true;
-	bool customized = false;
+    bool stripMetadata = false;
+    bool autoOrient = true;
+    unsigned quality = 0;
+    bool customized = false;
 	bool enabled = false;
 };
 

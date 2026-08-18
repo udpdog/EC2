@@ -85,7 +85,8 @@ unsigned long convertImage(const std::wstring& exe,const fs::path& in,const fs::
 		else if(options.resize.fit==FitMode::Crop)args+=L" -resize "+quote(geometry+L"^")+L" -gravity center -extent "+quote(geometry);
 		else args+=L" -resize "+quote(geometry+L"!");
 	}
-	if(options.enabled&&options.stripMetadata)args+=L" -strip";
+ if(options.enabled&&options.stripMetadata)args+=L" -strip";
+ if(options.enabled&&options.quality)args+=L" -quality "+std::to_wstring(options.quality);
 	return run(exe,args+L" "+quote(normalizeFormat(fmt)+L":"+out.wstring()));
 }
 }

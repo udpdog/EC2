@@ -3,13 +3,25 @@
 #include "formats.hpp"
 
 #include <iostream>
-#include <set>
+#include <map>
 
 namespace ec2 {
 namespace {
 
-const std::set<std::wstring> kFormatsWithAdvancedOptions = {
-    L"avif", L"bmp", L"eps", L"gif", L"pdf"
+struct FormatOptionsProfile {
+    unsigned defaultWidth = 0;
+    unsigned defaultHeight = 0;
+    bool supportsQuality = false;
+};
+
+const std::map<std::wstring, FormatOptionsProfile> kFormatProfiles = {
+    {L"avif", {}},
+    {L"bmp", {}},
+    {L"eps", {}},
+    {L"gif", {}},
+    {L"ico", {32, 32}},
+    {L"jpg", {0, 0, true}},
+    {L"pdf", {}}
 };
 
 bool readValue(int argc, wchar_t* argv[], int& index,
@@ -64,15 +76,23 @@ OptionParseResult parseConversionOption(const std::wstring& argument,
                                         ConversionOptions& options,
                                         std::wstring& error) {
 	std::wstring value;
-	if (argument == L"--width" || argument == L"--height") {
-		if (!readValue(argc, argv, index, argument, value, error)) return OptionParseResult::Error;
-		unsigned dimension = 0;
-		if (!parseDimension(value, dimension)) {
-			error = L"dimension invalide : " + value + L".";
-			return OptionParseResult::Error;
-		}
-		if (argument == L"--width") options.resize.width = dimension;
-		else options.resize.height = dimension;
+    if (argument == L"--width" || argument == L"--height" || argument == L"--quality") {
+        if (!readValue(argc, argv, index, argument, value, error)) return OptionParseResult::Error;
+        unsigned dimension = 0;
+        if (!parseDimension(value, dimension)) {
+            error = argument == L"--quality"
+                ? L"--quality exige une valeur de 1 a 100."
+                : L"dimension invalide : " + value + L".";
+            return OptionParseResult::Error;
+        }
+        if (argument == L"--quality") {
+            if (dimension > 100) {
+                error = L"--quality exige une valeur de 1 a 100.";
+                return OptionParseResult::Error;
+            }
+            options.quality = dimension;
+        } else if (argument == L"--width") options.resize.width = dimension;
+        else options.resize.height = dimension;
 	} else if (argument == L"--fit") {
 		if (!readValue(argc, argv, index, argument, value, error)) return OptionParseResult::Error;
 		if (!parseFitMode(value, options.resize.fit)) {
@@ -99,12 +119,21 @@ OptionParseResult parseConversionOption(const std::wstring& argument,
 bool validateConversionOptions(const std::wstring& outputFormat,
                                ConversionOptions& options,
                                std::wstring& error) {
-	options.enabled = kFormatsWithAdvancedOptions.count(outputFormat) != 0;
-	if (options.customized && !options.enabled) {
+    const auto profile = kFormatProfiles.find(outputFormat);
+    options.enabled = profile != kFormatProfiles.end();
+    if (options.customized && !options.enabled) {
 		error = L"les options avancees ne sont pas disponibles pour le format "
 		        + outputFormat + L".";
-		return false;
-	}
+        return false;
+    }
+    if (options.quality && options.enabled && !profile->second.supportsQuality) {
+        error = L"--quality n'est pas disponible pour le format " + outputFormat + L".";
+        return false;
+    }
+    if (options.enabled) {
+        if (!options.resize.width) options.resize.width = profile->second.defaultWidth;
+        if (!options.resize.height) options.resize.height = profile->second.defaultHeight;
+    }
 	if ((options.resize.fit == FitMode::Crop || options.resize.fit == FitMode::Scale)
 	        && (!options.resize.width || !options.resize.height)) {
 		error = L"--fit crop et scale exigent --width et --height.";
@@ -132,22 +161,39 @@ void printConversionOptions(const ConversionOptions& options, std::wostream& out
 	       << L", hauteur="
 	       << (options.resize.height ? std::to_wstring(options.resize.height) : L"auto")
 	       << L", fit=" << fitModeName(options.resize.fit)
-	       << L", strip=" << (options.stripMetadata ? L"yes" : L"no")
-	       << L", auto-orient=" << (options.autoOrient ? L"yes" : L"no") << L'\n';
+           << L", strip=" << (options.stripMetadata ? L"yes" : L"no")
+           << L", auto-orient=" << (options.autoOrient ? L"yes" : L"no");
+    if (options.quality) output << L", quality=" << options.quality;
+    output << L'\n';
 }
 
 bool printConversionOptionsHelp(const std::wstring& format, std::wostream& output) {
-	if (kFormatsWithAdvancedOptions.count(normalizeFormat(format)) == 0) return false;
+    const std::wstring normalized = normalizeFormat(format);
+    const auto profile = kFormatProfiles.find(normalized);
+    if (profile == kFormatProfiles.end()) return false;
 
-	output << L"Options avancees pour " << normalizeFormat(format) << L" :\n"
-	       << L"  --width N           Largeur en pixels\n"
-	       << L"  --height N          Hauteur en pixels\n"
-	       << L"  --fit MODE          max, crop ou scale (defaut : max)\n"
-	       << L"  --strip BOOL        yes ou no (defaut : no)\n"
-	       << L"  --auto-orient BOOL  yes ou no (defaut : yes)\n\n"
+    output << L"Options avancees pour " << normalized << L" :\n"
+           << L"  --width N           Largeur en pixels";
+    if (profile->second.defaultWidth) output << L" (defaut : " << profile->second.defaultWidth << L")";
+    output << L"\n  --height N          Hauteur en pixels";
+    if (profile->second.defaultHeight) output << L" (defaut : " << profile->second.defaultHeight << L")";
+    output << L"\n"
+           << L"  --fit MODE          max, crop ou scale (defaut : max)\n"
+           << L"  --strip BOOL        yes ou no (defaut : no)\n"
+           << L"  --auto-orient BOOL  yes ou no (defaut : yes)\n";
+    if (profile->second.supportsQuality) {
+        output << L"  --quality N         Qualite de 1 a 100 (defaut : automatique)\n";
+    }
+    output << L"\n"
 	       << L"Exemple :\n"
-	       << L"  ec2.exe image.jpg -format " << normalizeFormat(format)
-	       << L" --width 1920 --height 1080 --fit max\n";
+           << L"  ec2.exe image.jpg -format " << normalized;
+    if (profile->second.defaultWidth && profile->second.defaultHeight) {
+        output << L" --width " << profile->second.defaultWidth
+               << L" --height " << profile->second.defaultHeight;
+    } else {
+        output << L" --width 1920 --height 1080";
+    }
+    output << L" --fit max\n";
 	return true;
 }
 
