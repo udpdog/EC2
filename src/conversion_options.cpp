@@ -26,7 +26,8 @@ const std::map<std::wstring, FormatOptionsProfile> kFormatProfiles = {
     {L"png", {0, 0, true, 75}},
     {L"ps", {}},
     {L"psd", {}},
-    {L"tiff", {}}
+    {L"tiff", {}},
+    {L"webp", {0, 0, true}}
 };
 
 bool readValue(int argc, wchar_t* argv[], int& index,

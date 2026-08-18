@@ -58,6 +58,7 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 .\ec2.exe --help ps
 .\ec2.exe --help psd
 .\ec2.exe --help tiff
+.\ec2.exe --help webp
 ```
 
 ```powershell
@@ -71,8 +72,8 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 - `--fit scale` force exactement les dimensions demandées.
 - `--strip yes` supprime les métadonnées.
 - `--auto-orient yes` applique l'orientation EXIF avant le redimensionnement.
-- `--quality 1..100` règle la qualité JPEG ou la compression PNG. Pour PNG,
-  la valeur par défaut est `75`.
+- `--quality 1..100` règle la qualité JPEG/WEBP ou la compression PNG. Pour
+  PNG, la valeur par défaut est `75`.
 
 La lecture et l'écriture réelles d'un format dépendent des codecs et délégués
 présents dans l'installation d'ImageMagick. Beaucoup de formats RAW sont faits
