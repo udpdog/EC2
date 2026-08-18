@@ -51,6 +51,7 @@ Pour afficher les options d'un format sans surcharger l'aide générale :
 .\ec2.exe --help avif
 .\ec2.exe --help bmp
 .\ec2.exe --help eps
+.\ec2.exe --help gif
 ```
 
 ```powershell
