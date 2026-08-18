@@ -4,23 +4,44 @@
 #include "formats.hpp"
 
 #include <iostream>
+#ifndef _WIN32
+#include <codecvt>
+#include <locale>
+#endif
 
 namespace ec2 {
+namespace {
+
+std::filesystem::path pathFromArgument(const std::wstring& value) {
+#ifdef _WIN32
+    return std::filesystem::path(value);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    return std::filesystem::u8path(converter.to_bytes(value));
+#endif
+}
+
+} // namespace
 
 void printHelp() {
-	std::wcout
-	        << L"EC2 - convertisseur d'images\n\n"
-	        << L"Utilisation :\n"
-	        << L"  ec2.exe <image> -format <format> [-o <sortie>] [--force]\n\n"
+#ifdef _WIN32
+    constexpr const wchar_t* program = L"ec2.exe";
+#else
+    constexpr const wchar_t* program = L"ec2";
+#endif
+    std::wcout
+        << L"EC2 - convertisseur d'images\n\n"
+        << L"Utilisation :\n"
+        << L"  " << program << L" <image> -format <format> [-o <sortie>] [--force]\n\n"
 	        << L"Options generales :\n"
 	        << L"  -format, -f       Format de destination\n"
 	        << L"  -o                Fichier de sortie\n"
 	        << L"  --force           Autoriser l'ecrasement\n"
 	        << L"  --formats         Lister les formats\n"
-	        << L"  -h, --help        Afficher cette aide\n\n"
-	        << L"Aide d'un format :\n"
-	        << L"  ec2.exe -h -f <format>\n"
-	        << L"  ec2.exe --help <format>\n";
+        << L"  -h, --help        Afficher cette aide\n\n"
+        << L"Aide d'un format :\n"
+        << L"  " << program << L" -h -f <format>\n"
+        << L"  " << program << L" --help <format>\n";
 }
 
 Options parseArguments(int argc, wchar_t* argv[]) {
@@ -87,12 +108,12 @@ Options parseArguments(int argc, wchar_t* argv[]) {
 				options.error = L"chemin de sortie manquant.";
 				return options;
 			}
-			options.output = argv[index];
+            options.output = pathFromArgument(argv[index]);
 		} else if (!argument.empty() && argument.front() == L'-') {
 			options.error = L"option inconnue : " + argument;
 			return options;
 		} else if (options.input.empty()) {
-			options.input = argument;
+            options.input = pathFromArgument(argument);
 		} else {
 			options.error = L"un seul fichier d'entree est accepte.";
 			return options;

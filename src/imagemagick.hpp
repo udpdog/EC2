@@ -3,7 +3,8 @@
 #include <string>
 #include "conversion_options.hpp"
 namespace ec2 {
-bool findImageMagick(std::wstring& executable);
+bool findImageMagick(std::filesystem::path& executable);
 bool installImageMagick();
-unsigned long convertImage(const std::wstring&,const std::filesystem::path&,const std::filesystem::path&,const std::wstring&,const ConversionOptions&);
+unsigned long convertImage(const std::filesystem::path&,const std::filesystem::path&,const std::filesystem::path&,const std::wstring&,const ConversionOptions&);
+std::wstring imageMagickInstallHint();
 }

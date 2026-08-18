@@ -179,7 +179,12 @@ bool printConversionOptionsHelp(const std::wstring& format, std::wostream& outpu
 	const auto profile = kFormatProfiles.find(normalized);
 	if (profile == kFormatProfiles.end()) return false;
 
-	output << L"Options avancees pour " << normalized << L" :\n"
+#ifdef _WIN32
+    constexpr const wchar_t* program = L"ec2.exe";
+#else
+    constexpr const wchar_t* program = L"ec2";
+#endif
+    output << L"Options avancees pour " << normalized << L" :\n"
 	       << L"  --width N           Largeur en pixels";
 	if (profile->second.defaultWidth) output << L" (defaut : " << profile->second.defaultWidth << L")";
 	output << L"\n  --height N          Hauteur en pixels";
@@ -196,7 +201,7 @@ bool printConversionOptionsHelp(const std::wstring& format, std::wostream& outpu
 	}
 	output << L"\n"
 	       << L"Exemple :\n"
-	       << L"  ec2.exe image.jpg -format " << normalized;
+           << L"  " << program << L" image.jpg -format " << normalized;
 	if (profile->second.defaultWidth && profile->second.defaultHeight) {
 		output << L" --width " << profile->second.defaultWidth
 		       << L" --height " << profile->second.defaultHeight;

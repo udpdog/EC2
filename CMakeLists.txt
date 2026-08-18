@@ -7,9 +7,13 @@ add_executable(ec2
     src/conversion_options.cpp
     src/formats.cpp
     src/imagemagick.cpp
+    src/process.cpp
 )
 target_compile_features(ec2 PRIVATE cxx_std_17)
-target_compile_definitions(ec2 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
+
+if(WIN32)
+    target_compile_definitions(ec2 PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
+endif()
 
 if(MSVC)
     target_compile_options(ec2 PRIVATE /W4 /permissive- /utf-8)

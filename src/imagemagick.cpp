@@ -1,92 +1,152 @@
 #include "imagemagick.hpp"
+
 #include "formats.hpp"
+#include "process.hpp"
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
+
+#include <filesystem>
+#include <string>
 #include <vector>
-namespace fs=std::filesystem;
+
+namespace fs = std::filesystem;
+
 namespace ec2 {
 namespace {
-std::wstring quote(const std::wstring& v) {
-	std::wstring r=L"\"";
-	size_t n=0;
-	for(wchar_t c:v) {
-		if(c==L'\\')++n;
-		else if(c==L'\"') {
-			r.append(n*2+1,L'\\');
-			r+=c;
-			n=0;
-		}
-		else {
-			r.append(n,L'\\');
-			n=0;
-			r+=c;
-		}
-	}
-	r.append(n*2,L'\\');
-	return r+L'\"';
+
+fs::path textArgument(const std::wstring& value) {
+#ifdef _WIN32
+    return fs::path(value);
+#else
+    std::string ascii(value.begin(), value.end());
+    return fs::path(ascii);
+#endif
 }
-bool search(const wchar_t* name,std::wstring& result) {
-	DWORD n=SearchPathW(nullptr,name,nullptr,0,nullptr,nullptr);
-	if(!n)return false;
-	std::vector<wchar_t>b(n+1);
-	DWORD w=SearchPathW(nullptr,name,nullptr,(DWORD)b.size(),b.data(),nullptr);
-	if(!w||w>=b.size())return false;
-	result.assign(b.data(),w);
-	return true;
+
+#ifdef _WIN32
+bool findWindowsInstallation(fs::path& executable) {
+    const wchar_t* roots[] = {L"ProgramFiles", L"ProgramW6432"};
+    for (const wchar_t* variable : roots) {
+        const DWORD size = GetEnvironmentVariableW(variable, nullptr, 0);
+        if (!size) continue;
+        std::vector<wchar_t> value(size);
+        if (!GetEnvironmentVariableW(variable, value.data(), size)) continue;
+        std::error_code error;
+        for (const auto& entry : fs::directory_iterator(fs::path(value.data()), error)) {
+            if (error || !entry.is_directory(error)) continue;
+            if (normalizeFormat(entry.path().filename().wstring()).rfind(L"imagemagick", 0)) continue;
+            const fs::path candidate = entry.path() / L"magick.exe";
+            if (fs::is_regular_file(candidate, error)) {
+                executable = candidate;
+                return true;
+            }
+        }
+    }
+    return false;
 }
-DWORD run(const std::wstring& exe,const std::wstring& args) {
-	std::wstring cmd=quote(exe)+L" "+args;
-	std::vector<wchar_t>b(cmd.begin(),cmd.end());
-	b.push_back(0);
-	STARTUPINFOW si{};
-	si.cb=sizeof(si);
-	PROCESS_INFORMATION pi{};
-	if(!CreateProcessW(exe.c_str(),b.data(),nullptr,nullptr,TRUE,0,nullptr,nullptr,&si,&pi))return GetLastError();
-	CloseHandle(pi.hThread);
-	WaitForSingleObject(pi.hProcess,INFINITE);
-	DWORD code=1;
-	GetExitCodeProcess(pi.hProcess,&code);
-	CloseHandle(pi.hProcess);
-	return code;
+#endif
+
+} // namespace
+
+bool findImageMagick(fs::path& executable) {
+#ifdef _WIN32
+    if (findExecutable({"magick.exe"}, executable)) return true;
+    return findWindowsInstallation(executable);
+#else
+    // ImageMagick 7 fournit `magick`; de nombreuses distributions proposent
+    // encore ImageMagick 6 sous le nom `convert`.
+    return findExecutable({"magick", "convert"}, executable);
+#endif
 }
-}
-bool findImageMagick(std::wstring& exe) {
-	if(search(L"magick.exe",exe))return true;
-	for(const wchar_t* var: {
-	            L"ProgramFiles",L"ProgramW6432"
-	        }) {
-		DWORD n=GetEnvironmentVariableW(var,nullptr,0);
-		if(!n)continue;
-		std::vector<wchar_t>b(n);
-		if(!GetEnvironmentVariableW(var,b.data(),n))continue;
-		std::error_code e;
-		for(const auto& x:fs::directory_iterator(fs::path(b.data()),e)) {
-			if(e||!x.is_directory(e))continue;
-			if(normalizeFormat(x.path().filename().wstring()).rfind(L"imagemagick",0))continue;
-			fs::path p=x.path()/L"magick.exe";
-			if(fs::is_regular_file(p,e)) {
-				exe=p.wstring();
-				return true;
-			}
-		}
-	}
-	return false;
-}
+
 bool installImageMagick() {
-	std::wstring w;
-	if(!search(L"winget.exe",w))return false;
-	return run(w,L"install --id ImageMagick.ImageMagick --exact --accept-package-agreements --accept-source-agreements")==0;
+    fs::path installer;
+#ifdef _WIN32
+    if (!findExecutable({"winget.exe"}, installer)) return false;
+    return runProcess(installer, {
+        L"install", L"--id", L"ImageMagick.ImageMagick", L"--exact",
+        L"--accept-package-agreements", L"--accept-source-agreements"
+    }) == 0;
+#else
+    fs::path sudo;
+    const bool hasSudo = findExecutable({"sudo"}, sudo);
+    const auto install = [&](const std::vector<fs::path>& command) {
+        if (command.empty()) return false;
+        if (hasSudo) {
+            std::vector<fs::path> arguments{command.front()};
+            arguments.insert(arguments.end(), command.begin() + 1, command.end());
+            return runProcess(sudo, arguments) == 0;
+        }
+        std::vector<fs::path> arguments(command.begin() + 1, command.end());
+        return runProcess(command.front(), arguments) == 0;
+    };
+
+    if (findExecutable({"apt-get"}, installer))
+        return install({installer, "install", "-y", "imagemagick"});
+    if (findExecutable({"dnf"}, installer))
+        return install({installer, "install", "-y", "ImageMagick"});
+    if (findExecutable({"yum"}, installer))
+        return install({installer, "install", "-y", "ImageMagick"});
+    if (findExecutable({"pacman"}, installer))
+        return install({installer, "-S", "--noconfirm", "imagemagick"});
+    if (findExecutable({"zypper"}, installer))
+        return install({installer, "--non-interactive", "install", "ImageMagick"});
+    if (findExecutable({"apk"}, installer))
+        return install({installer, "add", "imagemagick"});
+    return false;
+#endif
 }
-unsigned long convertImage(const std::wstring& exe,const fs::path& in,const fs::path& out,const std::wstring& fmt,const ConversionOptions& options) {
-	std::wstring args=quote(in.wstring());
-	if(options.enabled&&options.autoOrient)args+=L" -auto-orient";
-	if(options.enabled&&(options.resize.width||options.resize.height)) {
-		std::wstring geometry=(options.resize.width?std::to_wstring(options.resize.width):L"")+L"x"+(options.resize.height?std::to_wstring(options.resize.height):L"");
-		if(options.resize.fit==FitMode::Max)args+=L" -resize "+quote(geometry+L">");
-		else if(options.resize.fit==FitMode::Crop)args+=L" -resize "+quote(geometry+L"^")+L" -gravity center -extent "+quote(geometry);
-		else args+=L" -resize "+quote(geometry+L"!");
-	}
-	if(options.enabled&&options.stripMetadata)args+=L" -strip";
-	if(options.enabled&&options.quality)args+=L" -quality "+std::to_wstring(options.quality);
-	return run(exe,args+L" "+quote(normalizeFormat(fmt)+L":"+out.wstring()));
+
+std::wstring imageMagickInstallHint() {
+#ifdef _WIN32
+    return L"Verifiez que winget est installe.";
+#else
+    return L"Installez ImageMagick avec le gestionnaire de paquets de votre distribution.";
+#endif
 }
+
+unsigned long convertImage(const fs::path& executable,
+                           const fs::path& input,
+                           const fs::path& output,
+                           const std::wstring& format,
+                           const ConversionOptions& options) {
+    std::vector<fs::path> arguments{input};
+    if (options.enabled && options.autoOrient) arguments.emplace_back("-auto-orient");
+
+    if (options.enabled && (options.resize.width || options.resize.height)) {
+        std::wstring geometry = (options.resize.width
+            ? std::to_wstring(options.resize.width) : L"") + L"x"
+            + (options.resize.height ? std::to_wstring(options.resize.height) : L"");
+        arguments.emplace_back("-resize");
+        if (options.resize.fit == FitMode::Max) {
+            arguments.push_back(textArgument(geometry + L">"));
+        } else if (options.resize.fit == FitMode::Crop) {
+            arguments.push_back(textArgument(geometry + L"^"));
+            arguments.emplace_back("-gravity");
+            arguments.emplace_back("center");
+            arguments.emplace_back("-extent");
+            arguments.push_back(textArgument(geometry));
+        } else {
+            arguments.push_back(textArgument(geometry + L"!"));
+        }
+    }
+    if (options.enabled && options.stripMetadata) arguments.emplace_back("-strip");
+    if (options.enabled && options.quality) {
+        arguments.emplace_back("-quality");
+        arguments.push_back(textArgument(std::to_wstring(options.quality)));
+    }
+
+    fs::path forcedOutput;
+#ifdef _WIN32
+    forcedOutput = fs::path(normalizeFormat(format) + L":" + output.wstring());
+#else
+    const std::string outputFormat(format.begin(), format.end());
+    forcedOutput = fs::path(outputFormat + ":" + output.string());
+#endif
+    arguments.push_back(forcedOutput);
+    return runProcess(executable, arguments);
 }
+
+} // namespace ec2

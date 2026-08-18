@@ -5,6 +5,7 @@
 [![Latest release](https://img.shields.io/github/v/release/udpdog/EC2?style=for-the-badge&label=Version)](https://github.com/udpdog/EC2/releases/latest)
 [![Build and release](https://img.shields.io/github/actions/workflow/status/udpdog/EC2/release.yml?style=for-the-badge&label=Build)](https://github.com/udpdog/EC2/actions/workflows/release.yml)
 [![Windows x64](https://img.shields.io/badge/Windows-x64-0078D4?style=for-the-badge&logo=windows)](#installation)
+[![Linux x64](https://img.shields.io/badge/Linux-x64-FCC624?style=for-the-badge&logo=linux&logoColor=black)](#installation)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?style=for-the-badge&logo=cplusplus)](#compilation)
 
 EC2 convertit des images, fichiers RAW et documents vers des formats courants
@@ -48,11 +49,11 @@ avec une syntaxe courte et des options avancées adaptées au format de sortie.
 - Gestion sûre des fichiers existants avec confirmation explicite via
   `--force`.
 - Installation automatique d’ImageMagick lorsqu’il est absent.
-- Chemins Windows Unicode et chemins contenant des espaces.
+- Chemins Unicode et chemins contenant des espaces.
 
 ## Installation
 
-### Exécutable Windows
+### Windows x64
 
 Téléchargez [`ec2.exe`](https://github.com/udpdog/EC2/releases/latest/download/ec2.exe)
 depuis la [dernière version publiée](https://github.com/udpdog/EC2/releases/latest),
@@ -72,6 +73,22 @@ lancement.
 > [!TIP]
 > Ajoutez le dossier contenant `ec2.exe` à votre variable `PATH` pour pouvoir
 > exécuter `ec2` depuis n’importe quel répertoire.
+
+### Linux x64
+
+Téléchargez `ec2-linux-x64.tar.gz` depuis la
+[dernière version publiée](https://github.com/udpdog/EC2/releases/latest), puis :
+
+```bash
+tar -xzf ec2-linux-x64.tar.gz
+chmod +x ec2-linux-x64
+sudo install ec2-linux-x64 /usr/local/bin/ec2
+ec2 --help
+```
+
+EC2 recherche ImageMagick 7 avec `magick`, puis accepte également ImageMagick
+6 avec `convert`. Si aucun moteur n’est présent, il tente une installation via
+`apt-get`, `dnf`, `yum`, `pacman`, `zypper` ou `apk`.
 
 ## Utilisation
 
@@ -262,7 +279,9 @@ Avec `fit=max`, les proportions sont conservées. Pour forcer un carré exact :
 
 ## Compilation
 
-EC2 cible Windows x64 et utilise C++17 avec CMake.
+EC2 cible Windows et Linux x64 et utilise C++17 avec CMake.
+
+### Windows
 
 Clonez le dépôt puis lancez :
 
@@ -287,6 +306,22 @@ Le script installe automatiquement avec `winget`, si nécessaire :
 EC2\ec2.exe
 ```
 
+### Linux
+
+Sous Debian ou Ubuntu :
+
+```bash
+sudo apt update
+sudo apt install build-essential cmake imagemagick
+git clone https://github.com/udpdog/EC2.git
+cd EC2
+bash ./build.sh
+./ec2 --help
+```
+
+Le résultat est créé dans `EC2/ec2`. Pour les autres distributions, installez
+CMake, un compilateur C++17 et ImageMagick avec votre gestionnaire de paquets.
+
 ### Compilation manuelle
 
 Si les outils sont déjà installés :
@@ -301,14 +336,15 @@ Copy-Item .\build\Release\ec2.exe .\ec2.exe
 
 | Dépendance | Utilisation | Installation automatique |
 |---|---|:---:|
-| Windows 10/11 x64 | Plateforme cible | — |
-| ImageMagick 7 | Lecture, transformation et encodage | Oui |
-| `winget` | Installation des composants manquants | Requis si un composant manque |
+| Windows 10/11 x64 ou Linux x64 | Plateformes cibles | — |
+| ImageMagick 6 ou 7 | Lecture, transformation et encodage | Oui |
+| `winget` ou gestionnaire Linux | Installation des composants manquants | Requis si un composant manque |
 | CMake | Génération du projet | Oui, pour compiler |
 | Visual Studio Build Tools | Compilateur C++ | Oui, pour compiler |
 
-EC2 exécute `magick.exe` directement avec `CreateProcessW` et ne construit pas
-une commande passée à un interpréteur shell.
+EC2 lance ImageMagick directement avec `CreateProcessW` sous Windows et
+`posix_spawn` sous Linux. Aucune commande de conversion n’est passée à un
+interpréteur shell.
 
 ## Structure du projet
 
@@ -321,9 +357,11 @@ EC2/
 │   ├── formats.*        Formats d’entrée et de sortie
 │   ├── conversion_options.*
 │   │                    Profils et validation des options avancées
-│   └── imagemagick.*    Détection et exécution d’ImageMagick
+│   ├── imagemagick.*    Détection et arguments ImageMagick
+│   └── process.*        Exécution sécurisée Windows/Linux
 ├── build.cmd            Lanceur de compilation Windows
 ├── build.ps1            Installation et compilation automatisées
+├── build.sh             Compilation Linux
 └── CMakeLists.txt        Configuration CMake
 ```
 
@@ -349,13 +387,13 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Le workflow compile `ec2.exe`, vérifie sa présence, crée la GitHub Release et y
-joint l’exécutable Windows x64.
+Le workflow compile et teste séparément Windows x64 et Linux x64, crée la
+GitHub Release, puis joint `ec2.exe`, le binaire Linux et son archive `tar.gz`.
 
 ---
 
 <div align="center">
 
-Développé en C++17 pour Windows.
+Développé en C++17 pour Windows et Linux.
 
 </div>
