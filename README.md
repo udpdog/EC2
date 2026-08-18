@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/logo.png" alt="Logo EC2" width="420">
+<img src=".github/banner.png" alt="Banner EC2" width="420">
 
 [![Latest release](https://img.shields.io/github/v/release/udpdog/EC2?style=for-the-badge&label=Version)](https://github.com/udpdog/EC2/releases/latest)
 [![Build and release](https://img.shields.io/github/actions/workflow/status/udpdog/EC2/release.yml?style=for-the-badge&label=Build)](https://github.com/udpdog/EC2/actions/workflows/release.yml)
